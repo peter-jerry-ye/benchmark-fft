@@ -3,7 +3,8 @@
   "import": [
     "moonbitlang/showcase-fft/lib",
     "tonyfettes/uv",
-    "moonbitlang/x/sys"
+    "moonbitlang/x/sys",
+    "moonbitlang/x/fs"
   ],
   "link": {
     "native": {

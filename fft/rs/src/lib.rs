@@ -1,6 +1,6 @@
 use std::f64::consts::PI;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Complex {
     pub real: f64,
     pub imag: f64,

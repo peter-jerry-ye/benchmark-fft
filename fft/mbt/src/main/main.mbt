@@ -9,9 +9,15 @@ fn main {
   let start = @uv.hrtime()
   @lib.fft(signals)
   let end = @uv.hrtime()
-  println("execution time: \{(end - start).to_double() / 1_000_000} ms")
-  for signal in signals {
-    ignore(signal)
+  if cli_args.length() > 2 {
+    let output_file = cli_args[2]
+    let sb = StringBuilder::new()
+    for signal in signals {
+      sb.write_string("\{signal.real},\{signal.imag}\n")
+    }
+    try! @fs.write_string_to_file(output_file, sb.to_string())
+  } else {
+    println("execution time: \{(end - start).to_double() / 1_000_000} ms")
   }
 }
 
