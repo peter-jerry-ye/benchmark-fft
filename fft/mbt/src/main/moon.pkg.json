@@ -1,0 +1,16 @@
+{
+  "is-main": true,
+  "import": [
+    "moonbitlang/showcase-fft/lib",
+    "tonyfettes/uv",
+    "moonbitlang/x/sys"
+  ],
+  "link": {
+    "native": {
+      "flags": [
+        "-cc",
+        "gcc -O2 -fwrapv"
+      ]
+    }
+  }
+}

@@ -1,0 +1,14 @@
+[package]
+name = "showcase-fft"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[lib]
+name = "fft"
+path = "src/lib.rs"
+
+[[bin]]
+name = "main"
+path = "src/main.rs" 
