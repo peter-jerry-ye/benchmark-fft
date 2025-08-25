@@ -154,8 +154,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-build", action="store_true", help="Skip building the programs")
     parser.add_argument("--runs", type=int, default=10, help="Number of runs per input")
-    parser.add_argument("--inputs", nargs="*", type=int, default=[18, 20], help="Input sizes")
-    parser.add_argument("--no-verify", action="store_true", help="Disable MBT->file then Rust->verify step")
+    parser.add_argument("--inputs", nargs="*", type=int, default=[18, 20, 22], help="Input sizes")
+    parser.add_argument("--verify", action="store_true", help="Enable MBT->file then Rust->verify step (disabled by default)")
     parser.add_argument("--verify-per-run", action="store_true", help="Verify on every Rust timing run")
     parser.add_argument("--verify-dir", type=str, default=".verify_out", help="Directory for verification files")
     parser.add_argument("--verbose", action="store_true", help="Log every executed command")
@@ -186,7 +186,7 @@ def main():
     results: List[BenchResult] = []
 
     for n in args.inputs:
-        if not args.no_verify:
+        if args.verify:
             print(f"[VERIFY] input={n}")
             verifier = verify_pair(mbt, rust, n, repo_root / args.verify_dir, verbose=args.verbose, per_run=args.verify_per_run)
         else:
