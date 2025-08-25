@@ -32,10 +32,9 @@ let start = DispatchTime.now()
 fft(&signals)
 let end = DispatchTime.now()
 
-let elapsedNs = end.uptimeNanoseconds &- start.uptimeNanoseconds
-let elapsedMs = elapsedNs / 1_000_000
-
-print("execution time: \(elapsedMs) ms")
+let elapsedNs = end.uptimeNanoseconds - start.uptimeNanoseconds
+let elapsedMs = Double(elapsedNs) / 1_000_000.0
+print(String(format: "execution time: %.3f ms", elapsedMs))
 
 // var signals = generateInputs(len: 16384)
 // fft(&signals)

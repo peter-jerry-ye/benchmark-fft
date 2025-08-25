@@ -1,4 +1,4 @@
-use fft::{Complex, fft};
+use fft::{fft, Complex};
 use std::f64::consts::PI;
 
 fn round(n: f64) -> f64 {
@@ -42,8 +42,8 @@ fn main() {
         }
     } else {
         println!(
-            "execution time: {} ms",
-            end.duration_since(start).as_millis()
+            "execution time: {:.3} ms",
+            end.duration_since(start).as_secs_f64() * 1000.0
         );
     }
 }

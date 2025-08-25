@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 	"time"
-	
+
 	f "main/fft"
 )
 
@@ -35,8 +35,8 @@ func main() {
 	start := time.Now()
 	f.FFT(signals) // assumes in-place transform over []Complex
 	elapsed := time.Since(start)
-
-	fmt.Printf("execution time: %d ms\n", elapsed.Milliseconds())
+  ms := float64(elapsed.Nanoseconds()) / 1_000_000.0
+	fmt.Printf("execution time: %.3f ms\n", ms)
 }
 
 func round(n float64) float64 {
