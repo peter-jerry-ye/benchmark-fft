@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-bench_runner.py  (with verification + --verbose)
+bench_runner.py  (Rust + MoonBit + Swift + Go; verify opt-in; verbose logging)
 
 Features
-- Builds Rust + MoonBit (or skip with --no-build)
+- Builds Rust, MoonBit, Swift, Go (or skip with --no-build)
 - Optional verification per input: MoonBit writes golden file, Rust reads & compares
+  (Swift/Go are not verified)
 - Benchmarks inputs (default 18 20 22), N runs each (default 10)
 - Parses "execution time: XXX ms" and prints min/max/median/average
 - --verbose prints every command executed (build + runs + verification)
+- --verify is OPT-IN (disabled by default)
 
 Usage (from repo root):
     python3 bench_runner.py
@@ -15,7 +17,7 @@ Options:
     --no-build              Skip building the programs
     --runs N                Number of runs per input (default 10)
     --inputs i j k ...      Input sizes (default: 18 20 22)
-    --no-verify             Disable MBT->file then Rust->verify step
+    --verify                Enable MBT->file then Rust->verify step (disabled by default)
     --verify-per-run        Verify on every Rust timing run (slower)
     --verify-dir PATH       Directory for verification files (default: ./.verify_out)
     --verbose               Log every executed command
@@ -104,26 +106,36 @@ def format_ms(x: float) -> str:
 
 def print_table(results: List[BenchResult]) -> None:
     print()
-    print("=" * 80)
+    print("=" * 90)
     print("Benchmark Summary (execution time in ms)")
-    print("=" * 80)
+    print("=" * 90)
     header = f"{'Program':20} {'Input':>7} {'Runs':>6} {'Fastest':>12} {'Slowest':>12} {'Median':>12} {'Average':>12}"
     print(header)
     print("-" * len(header))
+
+    last_input = None
     for r in results:
         s = r.summary()
         if s is None:
             continue
-        line = f"{r.program:20} {r.input_value:7d} {s['runs']:6d} {format_ms(s['min']):>12} {format_ms(s['max']):>12} {format_ms(s['median']):>12} {format_ms(s['average']):>12}"
+        # Insert separator when input size changes
+        if last_input is not None and r.input_value != last_input:
+            print("-" * len(header))
+        line = f"{r.program:20} {r.input_value:7d} {s['runs']:6d} " \
+               f"{format_ms(s['min']):>12} {format_ms(s['max']):>12} " \
+               f"{format_ms(s['median']):>12} {format_ms(s['average']):>12}"
         print(line)
-    print("=" * 80)
+        last_input = r.input_value
+
+    print("=" * 90)
     print()
 
 def verify_pair(mbt: Program, rust: Program, input_value: int, out_dir: Path, verbose: bool, per_run: bool = False):
     """
     If per_run is False: generate one golden file with MBT and check once with Rust.
     If per_run is True:  return a callable that, given a run index, will perform
-                         MBT->file then Rust->verify for each run (slower, but strongest).
+                         MBT->file then Rust->verify for each run.
+    Swift/Go are not verified.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
     golden = out_dir / f"mbt_{input_value}.txt"
@@ -154,7 +166,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-build", action="store_true", help="Skip building the programs")
     parser.add_argument("--runs", type=int, default=10, help="Number of runs per input")
-    parser.add_argument("--inputs", nargs="*", type=int, default=[18, 20, 22], help="Input sizes")
+    parser.add_argument("--inputs", nargs="*", type=int, default=[18, 20, 22], help="Input sizes (log2 N)")
     parser.add_argument("--verify", action="store_true", help="Enable MBT->file then Rust->verify step (disabled by default)")
     parser.add_argument("--verify-per-run", action="store_true", help="Verify on every Rust timing run")
     parser.add_argument("--verify-dir", type=str, default=".verify_out", help="Directory for verification files")
@@ -175,7 +187,20 @@ def main():
         build_cmd=["moon", "build", "--target", "native", "--release"],
         exe_path=Path("target") / "native" / "release" / "build" / "main" / "main.exe",
     )
-    programs = [rust, mbt]  # build & run order
+    swift = Program(
+        name="swift",
+        workdir=repo_root / "fft" / "swift",
+        build_cmd=["swift", "build", "-c", "release"],
+        exe_path=Path(".build") / "release" / "main",
+    )
+    go = Program(
+        name="go",
+        workdir=repo_root / "fft" / "go",
+        build_cmd=["go", "build", "-o", "bin/main", "."],
+        exe_path=Path("bin") / "main",
+    )
+
+    programs = [rust, mbt, swift, go]  # build & run order
 
     # Build
     if not args.no_build:
@@ -192,7 +217,7 @@ def main():
         else:
             verifier = None
 
-        # Benchmark both programs
+        # Benchmark all programs; verification only applied to Rust when enabled
         for p in programs:
             print(f"[RUN] {p.name} n={n}")
             r = BenchResult(program=p.name, input_value=n)
