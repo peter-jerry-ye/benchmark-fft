@@ -32,6 +32,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
+from bench_plot import save_average_line_chart
+
 TIME_RE = re.compile(r"execution time:\s*([0-9]+(?:\.[0-9]+)?)\s*ms", re.IGNORECASE)
 
 @dataclass
@@ -229,6 +231,7 @@ def main():
             results.append(r)
 
     print_table(results)
+    save_average_line_chart(results, filename="bench_avg.png")
 
 if __name__ == "__main__":
     main()
