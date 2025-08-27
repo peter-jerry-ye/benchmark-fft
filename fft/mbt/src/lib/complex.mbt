@@ -6,18 +6,18 @@ pub(all) struct Complex {
 }
 
 ///|
-pub fn Complex::add(self : Complex, other : Complex) -> Complex {
+pub impl Add for Complex with op_add(self : Complex, other : Complex) -> Complex {
   { real: self.real + other.real, imag: self.imag + other.imag }
 }
 
 ///|
-pub fn Complex::sub(self : Complex, other : Complex) -> Complex {
+pub impl Sub for Complex with op_sub(self : Complex, other : Complex) -> Complex {
   { real: self.real - other.real, imag: self.imag - other.imag }
 }
 
 ///|
 #inline
-pub fn Complex::mul(self : Complex, other : Complex) -> Complex {
+pub impl Mul for Complex with op_mul(self : Complex, other : Complex) -> Complex {
   {
     real: self.real * other.real - self.imag * other.imag,
     imag: self.real * other.imag + self.imag * other.real,

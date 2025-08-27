@@ -1,7 +1,8 @@
 ///|
 fn identity(arr : FixedArray[Complex]) -> UninitializedArray[Complex] = "%identity"
 
-///| The function implementing the Cooley–Tukey algorithm for Fast Fourier Transform (FFT), as
+///|
+/// The function implementing the Cooley–Tukey algorithm for Fast Fourier Transform (FFT), as
 /// described in <https://cp-algorithms.com/algebra/fft.html#implementation>.
 ///
 /// The input signal is modified in-place.
@@ -24,10 +25,10 @@ pub fn fft(arr : FixedArray[Complex]) -> Unit {
     let wn = { real: @math.cos(ang), imag: @math.sin(ang) }
     for i in 0..<(n / 2) {
       let p = a0[i]
-      let q = w.mul(a1[i])
-      arr[i] = p.add(q)
-      arr[i + n / 2] = p.sub(q)
-      w = w.mul(wn)
+      let q = w * a1[i]
+      arr[i] = p + q
+      arr[i + n / 2] = p - q
+      w = w * wn
     }
   }
 
