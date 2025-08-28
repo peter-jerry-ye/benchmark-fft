@@ -28,16 +28,11 @@ fn round(n : Double) -> Double {
 }
 
 ///|
-fn generate_inputs(len : Int) -> FixedArray[Complex] {
-  let res : FixedArray[Complex] = FixedArray::make(len, Complex::{
-    real: 0.0,
-    imag: 0.0,
-  })
-  for i in 0..<len {
+fn generate_inputs(len : Int) -> Array[Complex] {
+  Array::makei(len, i => {
     let theta = i.to_double() / len.to_double() * @math.PI
     let re = 1.0 * @math.cos(10.0 * theta) + 0.5 * @math.cos(25.0 * theta)
     let im = 1.0 * @math.sin(10.0 * theta) + 0.5 * @math.sin(25.0 * theta)
-    res[i] = Complex::{ real: round(re), imag: round(im) }
-  }
-  res
+    Complex::{ real: round(re), imag: round(im) }
+  })
 }
