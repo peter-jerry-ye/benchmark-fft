@@ -1,0 +1,111 @@
+name: Benchmark FFT Implementations
+
+on:
+  workflow_dispatch: # Manual trigger
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  benchmark:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install matplotlib
+        
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: stable
+        
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.22'
+        
+    - name: Set up Swift
+      run: |
+        # Swift is pre-installed on macOS runners
+        swift --version
+        
+    - name: Set up MoonBit
+      run: |
+        curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash -s "0.6.26+4cdee97dd"
+        echo "$HOME/.moon/bin" >> $GITHUB_PATH
+    - name: Verify installations
+      run: |
+        moon version --all
+        moon update
+    - name: Cache Rust dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/bin/
+          ~/.cargo/registry/index/
+          ~/.cargo/registry/cache/
+          ~/.cargo/git/db/
+          target/
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        
+    - name: Cache Go dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        
+    - name: Cache Swift dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          .build
+        key: ${{ runner.os }}-swift-${{ hashFiles('**/Package.resolved') }}
+        
+    - name: Run benchmark
+      run: |
+        python3 bench_runner.py --verbose --runs 10
+        
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results-${{ github.run_id }}-${{ github.run_attempt }}
+        path: bench_avg.png
+        retention-days: 30
+        
+    - name: Display benchmark results
+      run: |
+        echo "## Benchmark Results Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Configuration" >> $GITHUB_STEP_SUMMARY
+        echo "- Runs: 10" >> $GITHUB_STEP_SUMMARY
+        echo "- Verification: Enabled" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Environment" >> $GITHUB_STEP_SUMMARY
+        echo "- OS: ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Python: 3.x" >> $GITHUB_STEP_SUMMARY
+        echo "- Rust: Stable" >> $GITHUB_STEP_SUMMARY
+        echo "- Go: 1.22" >> $GITHUB_STEP_SUMMARY
+        echo "- MoonBit: v0.6.25" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+        echo "- Results saved to bench_avg.png" >> $GITHUB_STEP_SUMMARY
+        echo "- Artifact retention: 30 days" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "You can download the detailed results from the workflow artifacts."
+        
+        # Also print to console for immediate visibility
+        echo "Benchmark completed successfully"
+        echo "Results saved to bench_avg.png"
+        echo "Detailed results summary has been added to the GitHub Actions summary."
